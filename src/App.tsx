@@ -1,3 +1,4 @@
+import { ToastProvider } from "./components";
 import { SubComponent, SubComponentVariant } from "./components/SubComponent";
 
 function App() {
@@ -30,20 +31,22 @@ function App() {
    *
    */
   return (
-    <div className="h-full">
-      <header className="text-xl w-full text-center py-10">
-        Timer Subscriptions Demo
-      </header>
+    <ToastProvider>
+      <div>
+        <header className="text-xl w-full text-center py-10">
+          Timer Subscriptions Demo
+        </header>
 
-      <div className="flex flex-row h-1/2">
-        {/* 4 subcomponent sections, plus one Toast provider. */}
-        {(["red", "blue", "green", "yellow"] as SubComponentVariant[]).map(
-          (color) => (
-            <SubComponent variant={color} />
-          )
-        )}
+        <div className="flex flex-row h-1/2">
+          {/* 4 subcomponent sections, plus one Toast provider. */}
+          {(["red", "blue", "green", "yellow"] as SubComponentVariant[]).map(
+            (color) => (
+              <SubComponent key={color} variant={color} />
+            )
+          )}
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }
 
