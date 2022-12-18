@@ -34,21 +34,30 @@ let counter = 1;
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
-  const { startTimer /*pauseTimer, clearTimer*/ } = useTimers();
+  //   const { startTimer /*pauseTimer, clearTimer*/ } = useTimers();
 
   console.log({ toasts });
 
   const addToast = (newToast: ToastInput) => {
-    // TODO: handle timeouts and auto-removal
     const newToastId = nanoid();
     setToasts([...toasts, { ...newToast, id: newToastId }]);
-    startTimer({
-      timerName: `${counter++}-${newToast.variant}`,
-      // so this callback is going to have all the same out-of-sync state closure problems as with the regular setTimeout...
-      callback: () => {
-        clearToast(newToastId);
-      },
-    });
+
+    // set up event for "toast-{id}-timer-end"
+    // setTimeout, () => { publishEvent(^) }, <duration>
+
+    // setSubscriptions([...subscriptions, "toast-id-timer-end"])
+
+    // useEffect(() => { }, [subscriptions])
+
+    // ... nope.. that will still have the same problem with the state being out of sync.
+
+    // startTimer({
+    //   timerName: `${counter++}-${newToast.variant}`,
+    //   // so this callback is going to have all the same out-of-sync state closure problems as with the regular setTimeout...
+    //   callback: () => {
+    //     clearToast(newToastId);
+    //   },
+    // });
   };
 
   const clearToast = (id: string) => {
