@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { nanoid } from "nanoid";
 import { SubComponentVariant } from "../SubComponent";
 import { Toast } from "../Toast";
+import { useTimers } from "./TimerProvider";
 
 export type ToastProps = {
   id: string;
@@ -29,12 +30,28 @@ export const useToast = () => {
   return useContext(ToastContext);
 };
 
+let counter = 1;
+
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
+  const { startTimer /*pauseTimer, clearTimer*/ } = useTimers();
+
+  console.log({ toasts });
 
   const addToast = (newToast: ToastInput) => {
     // TODO: handle timeouts and auto-removal
-    setToasts([...toasts, { ...newToast, id: nanoid() }]);
+    const newToastId = nanoid();
+    setToasts([...toasts, { ...newToast, id: newToastId }]);
+    startTimer({
+      timerName: `${counter++}-${newToast.variant}`,
+      callback: () => {
+        clearToast(newToastId);
+      },
+    });
+  };
+
+  const clearToast = (id: string) => {
+    setToasts([...toasts.filter((t) => t.id !== id)]);
   };
 
   return (

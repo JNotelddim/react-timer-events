@@ -1,6 +1,7 @@
-import { ToastProvider } from "./components";
+import { ToastProvider, TimerProvider } from "./components";
 import { SubComponent, SubComponentVariant } from "./components/SubComponent";
 
+// Should it all just be through a reducer instead??
 function App() {
   /**
    * PLAN:
@@ -31,22 +32,24 @@ function App() {
    *
    */
   return (
-    <ToastProvider>
-      <div>
-        <header className="text-xl w-full text-center py-10">
-          Timer Subscriptions Demo
-        </header>
+    <TimerProvider>
+      <ToastProvider>
+        <div>
+          <header className="text-xl w-full text-center py-10">
+            Timer Subscriptions Demo
+          </header>
 
-        <div className="flex flex-row h-1/2">
-          {/* 4 subcomponent sections, plus one Toast provider. */}
-          {(["red", "blue", "green", "yellow"] as SubComponentVariant[]).map(
-            (color) => (
-              <SubComponent key={color} variant={color} />
-            )
-          )}
+          <div className="flex flex-row h-1/2">
+            {/* 4 subcomponent sections, plus one Toast provider. */}
+            {(["red", "blue", "green", "yellow"] as SubComponentVariant[]).map(
+              (color) => (
+                <SubComponent key={color} variant={color} />
+              )
+            )}
+          </div>
         </div>
-      </div>
-    </ToastProvider>
+      </ToastProvider>
+    </TimerProvider>
   );
 }
 
