@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useToast } from "./provider";
+import { useToast } from "component/provider";
 export type SubComponentVariant = "red" | "blue" | "green" | "yellow";
 
 export const SubComponent = ({ variant }: { variant: SubComponentVariant }) => {
