@@ -27,6 +27,8 @@ export const useTimers = () => {
   return useContext(TimerContext);
 };
 
+// const TimerEvent
+
 /**
  * Provider component to spread the context into the App.
  * @param param0
@@ -56,9 +58,15 @@ export const TimerProvider = ({ children }: { children: React.ReactNode }) => {
         listener: callback,
       },
     };
+    document.addEventListener(`${eventName}-end`, (e) => {
+      console.log("end event noticed", e);
+      callback();
+    });
 
     setTimeout(() => {
       console.log("timeout elapsed", { timerName, id, eventName });
+      const endEvent = new CustomEvent(`${eventName}-end`);
+      document.dispatchEvent(endEvent);
     }, duration);
 
     setTimers([...timers, newTimer]);

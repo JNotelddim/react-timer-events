@@ -44,6 +44,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     setToasts([...toasts, { ...newToast, id: newToastId }]);
     startTimer({
       timerName: `${counter++}-${newToast.variant}`,
+      // so this callback is going to have all the same out-of-sync state closure problems as with the regular setTimeout...
       callback: () => {
         clearToast(newToastId);
       },
