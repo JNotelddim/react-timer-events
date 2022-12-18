@@ -60,7 +60,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 
       <div id="toast-area" className="flex gap-4 p-4 flex-wrap">
         {toasts.map((toast) => (
-          <Toast variant={toast.variant} />
+          <Toast key={toast.id} variant={toast.variant} />
         ))}
       </div>
     </ToastContext.Provider>
