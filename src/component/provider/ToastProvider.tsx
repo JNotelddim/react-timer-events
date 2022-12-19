@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { nanoid } from "nanoid";
 import { Toast, SubComponentVariant } from "component";
-import { useTimerEvents } from "hook";
+import { useStatefulTimeouts } from "hook";
 
 export type ToastProps = {
   id: string;
@@ -32,23 +32,16 @@ export const useToast = () => {
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-  const handleTimerEnd = (detail?: { id: string }) => {
-    setToasts([...toasts.filter((t) => t.id !== detail?.id)]);
-  };
-  const { addTimerEvent, publishEndEvent } = useTimerEvents({
-    onEvent: handleTimerEnd,
+  const { startTimer } = useStatefulTimeouts({
+    onTimerEnd: (id: string) => {
+      setToasts([...toasts.filter((t) => t.id !== id)]);
+    },
   });
 
   const addToast = (newToast: ToastInput) => {
     const newToastId = nanoid();
     setToasts([...toasts, { ...newToast, id: newToastId }]);
-
-    const timerEndEventName = `timer-${newToastId}-end`;
-    addTimerEvent(timerEndEventName);
-
-    setTimeout(() => {
-      publishEndEvent(timerEndEventName, { id: newToastId });
-    }, 5000);
+    startTimer(newToastId);
   };
 
   return (
