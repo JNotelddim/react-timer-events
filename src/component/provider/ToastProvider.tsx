@@ -7,6 +7,7 @@ export type ToastProps = {
   id: string;
   variant?: SubComponentVariant;
   timeoutDuration?: number;
+  isPaused?: boolean;
 };
 
 export type ToastInput = Omit<ToastProps, "id">;
@@ -32,13 +33,25 @@ export const useToast = () => {
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-  const { startTimer } = useStatefulTimeouts({
+  const { startTimer, pauseAll } = useStatefulTimeouts({
     onTimerEnd: (id: string) => {
       setToasts([...toasts.filter((t) => t.id !== id)]);
+    },
+    onTimerPause: (id: string) => {
+      const toast = toasts.find((t) => t.id === id);
+      if (!toast) {
+        return;
+      }
+
+      setToasts([
+        ...toasts.filter((t) => t.id !== id),
+        { ...toast, isPaused: true },
+      ]);
     },
   });
 
   const addToast = (newToast: ToastInput) => {
+    pauseAll();
     const newToastId = nanoid();
     setToasts([...toasts, { ...newToast, id: newToastId }]);
     startTimer(newToastId);
