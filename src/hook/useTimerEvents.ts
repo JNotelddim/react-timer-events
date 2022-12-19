@@ -31,6 +31,20 @@ export const useStatefulTimeouts = ({
   console.log({ timers });
   // TODO: why is 'pausing' timer not effecting this hook's state??
 
+  const resumeTop = React.useCallback(() => {
+    if (timers.length <= 0) {
+      return;
+    }
+
+    const newTop = { ...timers[timers.length - 1] };
+    newTop.startTime = Date.now();
+    newTop.isPaused = false;
+    newTop.timeout = setTimeout(() => {
+      setTimerEvents([...timerEvents, { id: newTop.id, type: "end" }]);
+    }, newTop.remaining);
+    setTimers([...timers.filter((t) => t.id !== newTop.id), newTop]);
+  }, [timers, setTimerEvents, setTimers, timerEvents]);
+
   useEffect(() => {
     // TODO: check that the event was an 'end' event?
     if (timerEvents && timerEvents.length) {
@@ -49,7 +63,7 @@ export const useStatefulTimeouts = ({
       const tempTimers = [...timers.filter((t) => t.id !== newEvent.id)];
       setTimers(tempTimers);
     }
-  }, [timerEvents, onTimerEnd, timers]);
+  }, [timerEvents, onTimerEnd, timers, resumeTop, setTimers]);
 
   const startTimer = (id: string, duration?: number) => {
     setTimers([
@@ -64,20 +78,6 @@ export const useStatefulTimeouts = ({
         }, duration || DEFAULT_TIMEOUT),
       },
     ]);
-  };
-
-  const resumeTop = () => {
-    if (timers.length <= 0) {
-      return;
-    }
-
-    const newTop = { ...timers[timers.length - 1] };
-    newTop.startTime = Date.now();
-    newTop.isPaused = false;
-    newTop.timeout = setTimeout(() => {
-      setTimerEvents([...timerEvents, { id: newTop.id, type: "end" }]);
-    }, newTop.remaining);
-    setTimers([...timers.filter((t) => t.id !== newTop.id), newTop]);
   };
 
   const pauseTimer = React.useCallback(
