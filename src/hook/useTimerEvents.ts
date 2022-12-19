@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export interface Timer {
   id: string;
   remaining: number;
   startTime: number;
+  isPaused: boolean;
   timeout: NodeJS.Timeout;
-  isPaused?: boolean;
 }
 
 const DEFAULT_TIMEOUT = 5000;
@@ -18,8 +18,8 @@ const DEFAULT_TIMEOUT = 5000;
  */
 export const useStatefulTimeouts = ({
   onTimerEnd,
-  onTimerPause,
-}: {
+}: //   onTimerPause,
+{
   onTimerEnd: (id: string) => void;
   onTimerPause?: (id: string) => void;
 }) => {
@@ -27,6 +27,9 @@ export const useStatefulTimeouts = ({
   const [timerEvents, setTimerEvents] = useState<
     { id: string; type: "end" | "pause" }[]
   >([]);
+
+  console.log({ timers });
+  // TODO: why is 'pausing' timer not effecting this hook's state??
 
   useEffect(() => {
     // TODO: check that the event was an 'end' event?
@@ -53,7 +56,7 @@ export const useStatefulTimeouts = ({
       ...timers,
       {
         id,
-        isPaused: true,
+        isPaused: false,
         remaining: duration || DEFAULT_TIMEOUT,
         startTime: Date.now(),
         timeout: setTimeout(() => {
@@ -68,33 +71,41 @@ export const useStatefulTimeouts = ({
       return;
     }
 
-    console.log("todo, resume top");
-
-    // TODO: resume top timer
-    // const newTop =
+    const newTop = { ...timers[timers.length - 1] };
+    newTop.startTime = Date.now();
+    newTop.isPaused = false;
+    newTop.timeout = setTimeout(() => {
+      setTimerEvents([...timerEvents, { id: newTop.id, type: "end" }]);
+    }, newTop.remaining);
+    setTimers([...timers.filter((t) => t.id !== newTop.id), newTop]);
   };
 
-  const pauseTimer = (id: string) => {
-    const timer = timers.find((t) => t.id);
-    if (!timer) {
-      return;
-    }
+  const pauseTimer = React.useCallback(
+    (id: string) => {
+      const timer = timers.find((t) => t.id === id);
+      if (!timer) {
+        return;
+      }
 
-    const tmpTimer = { ...timer };
-    tmpTimer.isPaused = true;
-    tmpTimer.remaining -= Date.now() - timer.startTime;
-    clearTimeout(timer.timeout);
+      const tmpTimer = { ...timer };
+      tmpTimer.isPaused = true;
+      tmpTimer.remaining -= Date.now() - timer.startTime;
+      clearTimeout(timer.timeout);
 
-    // TODO: read onPause later
-    // onTimerPause?.(id);
-    setTimers({ ...timers, [id]: timer });
-  };
+      console.log("pausedTimer", tmpTimer);
+      // TODO: __ BUG __ -- why isn't `setTimers` updating the state here??
+
+      // TODO: read onPause later
+      // onTimerPause?.(id);
+      setTimers([...timers, tmpTimer]);
+    },
+    [timers, setTimers]
+  );
 
   /* Pause all of the timers */
   const pauseAll = () => {
-    // console.log(`pausing all ${Object.keys(timers).join(", ")}`);
-    for (const id of Object.keys(timers)) {
-      pauseTimer(id);
+    for (const timer of timers.filter((t) => t.isPaused !== true)) {
+      pauseTimer(timer.id);
     }
   };
 

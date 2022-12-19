@@ -34,7 +34,7 @@ export const useToast = () => {
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-  console.log({ toasts });
+  // console.log({ toasts });
 
   const handleTimerEnd = useCallback(
     (id: string) => {
