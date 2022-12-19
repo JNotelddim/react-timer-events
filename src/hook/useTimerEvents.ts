@@ -45,40 +45,23 @@ export const useStatefulTimeouts = ({
     setTimers([...timers.filter((t) => t.id !== newTop.id), newTop]);
   }, [timers, setTimerEvents, setTimers, timerEvents]);
 
-  useEffect(() => {
-    // TODO: check that the event was an 'end' event?
-    if (timerEvents && timerEvents.length) {
-      const newEvent = timerEvents[timerEvents.length - 1];
-
-      if (newEvent.type === "end") {
-        onTimerEnd(newEvent.id);
-        // TODO: resume -- but this should be part of ^ callback , but it can't be because that'd be circular...
-        resumeTop();
-      }
-
-      // Clear out this event so it's not retriggered
-      setTimerEvents([...timerEvents.filter((t) => t?.id !== newEvent?.id)]);
-
-      // Clear out this timer so it's not tracked anymore
-      const tempTimers = [...timers.filter((t) => t.id !== newEvent.id)];
-      setTimers(tempTimers);
-    }
-  }, [timerEvents, onTimerEnd, timers, resumeTop, setTimers]);
-
-  const startTimer = (id: string, duration?: number) => {
-    setTimers([
-      ...timers,
-      {
-        id,
-        isPaused: false,
-        remaining: duration || DEFAULT_TIMEOUT,
-        startTime: Date.now(),
-        timeout: setTimeout(() => {
-          setTimerEvents([...timerEvents, { id, type: "end" }]);
-        }, duration || DEFAULT_TIMEOUT),
-      },
-    ]);
-  };
+  const startTimer = React.useCallback(
+    (id: string, duration?: number) => {
+      setTimers([
+        ...timers,
+        {
+          id,
+          isPaused: false,
+          remaining: duration || DEFAULT_TIMEOUT,
+          startTime: Date.now(),
+          timeout: setTimeout(() => {
+            setTimerEvents([...timerEvents, { id, type: "end" }]);
+          }, duration || DEFAULT_TIMEOUT),
+        },
+      ]);
+    },
+    [timers, setTimers, timerEvents, setTimerEvents]
+  );
 
   const pauseTimer = React.useCallback(
     (id: string) => {
@@ -92,10 +75,9 @@ export const useStatefulTimeouts = ({
       tmpTimer.remaining -= Date.now() - timer.startTime;
       clearTimeout(timer.timeout);
 
-      console.log("pausedTimer", tmpTimer);
       // TODO: __ BUG __ -- why isn't `setTimers` updating the state here??
-
-      // TODO: read onPause later
+      console.log("pausedTimer", tmpTimer);
+      // TODO: call onPause later
       // onTimerPause?.(id);
       setTimers([...timers, tmpTimer]);
     },
@@ -108,6 +90,29 @@ export const useStatefulTimeouts = ({
       pauseTimer(timer.id);
     }
   };
+
+  /**
+   * Track 'End' timer events
+   */
+  useEffect(() => {
+    // TODO: check that the event was an 'end' event?
+    if (timerEvents && timerEvents.length) {
+      const newEvent = timerEvents[timerEvents.length - 1];
+
+      if (newEvent.type === "end") {
+        onTimerEnd(newEvent.id);
+        // TODO: resume -- but this should be part of `onTimerEnd` callback , but it can't be because that'd be circular...
+        resumeTop();
+      }
+
+      // Clear out this event so it's not retriggered
+      setTimerEvents([...timerEvents.filter((t) => t?.id !== newEvent?.id)]);
+
+      // Clear out this timer so it's not tracked anymore
+      const tempTimers = [...timers.filter((t) => t.id !== newEvent.id)];
+      setTimers(tempTimers);
+    }
+  }, [timerEvents, onTimerEnd, timers, resumeTop, setTimers]);
 
   return { startTimer, pauseTimer, pauseAll };
 };
