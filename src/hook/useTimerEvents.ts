@@ -25,11 +25,11 @@ export const useStatefulTimeouts = ({
   const [timers, setTimers] = useState<Record<string, Timer>>({});
   const [timerEvents, setTimerEvents] = useState<{ id: string }[]>([]);
 
-  console.log(
-    `timers: [${Object.keys(timers).join(", ")}]; events: [${timerEvents.join(
-      ", "
-    )}]`
-  );
+  //   console.log(
+  //     `timers: [${Object.keys(timers).join(", ")}]; events: [${timerEvents.join(
+  //       ", "
+  //     )}]`
+  //   );
 
   useEffect(() => {
     // TODO: check that the event was an 'end' event?
@@ -77,7 +77,7 @@ export const useStatefulTimeouts = ({
 
   /* Pause all of the timers */
   const pauseAll = () => {
-    console.log(`pausing all ${Object.keys(timers).join(", ")}`);
+    // console.log(`pausing all ${Object.keys(timers).join(", ")}`);
     for (const id of Object.keys(timers)) {
       pauseTimer(id);
     }

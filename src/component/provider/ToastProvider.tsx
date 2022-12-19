@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { nanoid } from "nanoid";
 import { Toast, SubComponentVariant } from "component";
 import { useStatefulTimeouts } from "hook";
+import { useCallback } from "react";
 
 export type ToastProps = {
   id: string;
@@ -33,27 +34,45 @@ export const useToast = () => {
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-  const { startTimer, pauseAll } = useStatefulTimeouts({
-    onTimerEnd: (id: string) => {
+  console.log({ toasts });
+
+  const handleTimerEnd = useCallback(
+    (id: string) => {
       setToasts([...toasts.filter((t) => t.id !== id)]);
     },
-    onTimerPause: (id: string) => {
-      const toast = toasts.find((t) => t.id === id);
-      if (!toast) {
-        return;
-      }
+    [toasts, setToasts]
+  );
 
-      setToasts([
-        ...toasts.filter((t) => t.id !== id),
-        { ...toast, isPaused: true },
-      ]);
-    },
+  // const handleTimerPause = useCallback(
+  //   (id: string) => {
+  //     const toast = toasts.find((t) => t.id === id);
+  //     console.log("onPauseToast", toast);
+  //     if (!toast) {
+  //       return;
+  //     }
+
+  //     const updatedToasts = [
+  //       ...toasts.filter((t) => t.id !== id),
+  //       { ...toast, isPaused: true },
+  //     ];
+  //     // __ BUG __ : this updatedToasts value isn't being applied to state??
+  //     console.log("setToasts", updatedToasts);
+  //     setToasts(updatedToasts);
+  //   },
+  //   [toasts, setToasts]
+  // );
+
+  const { startTimer, pauseAll } = useStatefulTimeouts({
+    onTimerEnd: handleTimerEnd,
+    // onTimerPause: handleTimerPause,
   });
 
   const addToast = (newToast: ToastInput) => {
     pauseAll();
     const newToastId = nanoid();
+    // console.log("addtoast", { ...newToast, id: newToastId });
     setToasts([...toasts, { ...newToast, id: newToastId }]);
+    // console.log("startTimer", newToastId);
     startTimer(newToastId);
   };
 
@@ -63,7 +82,11 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 
       <div id="toast-area" className="flex gap-4 p-4 flex-wrap">
         {toasts.map((toast) => (
-          <Toast key={toast.id} variant={toast.variant} />
+          <Toast
+            key={toast.id}
+            variant={toast.variant}
+            isPaused={toast.isPaused}
+          />
         ))}
       </div>
     </ToastContext.Provider>
